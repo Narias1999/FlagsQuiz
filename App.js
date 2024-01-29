@@ -1,14 +1,16 @@
-import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, AppState } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import { SvgUri } from 'react-native-svg';
 
 import Button from './components/Button';
 
-import countries from './countries.json';
+import countriest from './countries.json';
 import { useEffect, useMemo, useState } from 'react';
 import { shuffleArry, getFirst10Items } from './utils';
 import { useCheatCount } from './hooks/useCheatCount';
 import { useSaveScores } from './hooks/useSaveScores';
+
+const countries = getFirst10Items(countriest);
 
 const countryNames = countries.map(country => country.country);
 
@@ -23,6 +25,7 @@ export default function App() {
   const [current, setCurrent] = useState(0);
   const [selectedCountry, setSelectedCountry] = useState('');
   const [correct, setCorrect] = useState([]);
+  const [shuffledCountries, setShuffledCountries] = useState(shuffleArry(countries));
   useSaveScores({ countries, current, correct, outTimes });
   const filteredCountries = useMemo(() => {
     const filtered = countryNames.filter(country => {
@@ -38,7 +41,9 @@ export default function App() {
 
   useEffect(() => resetApp(), [outTimes]);
 
-  const shuffledCountries = useMemo(() => shuffleArry(countries), [outTimes]);
+  useEffect(() => {
+    setShuffledCountries(shuffleArry(countries));
+  }, [outTimes]);
 
   const resetApp = () => {
     setQuery('');
@@ -66,6 +71,16 @@ export default function App() {
     setCurrent(current + 1);
   }
 
+  const handleSkip = () => {
+    setShuffledCountries(countries => {
+      const newCountries = [...countries];
+      const currentCountry = newCountries[current];
+      newCountries.splice(current, 1);
+      newCountries.push(currentCountry);
+      return newCountries;
+    });
+  }
+
   if (current >= countries.length) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 15 }}>
@@ -89,7 +104,7 @@ export default function App() {
             uri={shuffledCountries[current].flag}
             style={styles.flag}
           />
-          <View style={{ position: 'relative' }}>
+          <View style={{ position: 'relative', zIndex: 100 }}>
             {
               !!selectedCountry ? (
                 <View style={styles.actions}>
@@ -113,6 +128,9 @@ export default function App() {
                 />
               )
             }
+          </View>
+          <View style={{ paddingTop: 30 }}>
+            <Button type='info' onPress={handleSkip}>Skip</Button>
           </View>
         </View>
         {
