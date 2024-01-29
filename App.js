@@ -7,6 +7,17 @@ import { useMemo, useState } from 'react';
 
 const countryNames = countries.map(country => country.country);
 
+const shuffleArry = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * i);
+    const temp = shuffled[i];
+    shuffled[i] = shuffled[j];
+    shuffled[j] = temp;
+  }
+  return shuffled;
+}
+
 const Item = ({ children, onPress }) => (
   <TouchableOpacity onPress={onPress}>
     <Text style={{ fontSize: 16, paddingVertical: 5, paddingHorizontal: 8 }}>{children}</Text>
@@ -27,8 +38,17 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [current, setCurrent] = useState(0); // countries[0
   const [selectedCountry, setSelectedCountry] = useState('');
-  const filteredCountries = useMemo(() => getFirst10Items(countryNames.filter(country => country.toLowerCase().includes(query.toLowerCase()))), [query]);
-  const [score, setScore] = useState(0);
+  const [correct, setCorrect] = useState([]);
+  const filteredCountries = useMemo(() => {
+    const filtered = countryNames.filter(country => {
+      const isInList = country.toLowerCase().includes(query.toLowerCase());
+      const isCorrect = correct.includes(country);
+      return isInList && !isCorrect;
+    });
+
+    return getFirst10Items(filtered);
+  }, [query]);
+  const shuffledCountries = useMemo(() => shuffleArry(countries), []);
 
   const selectItem = (item) => {
     setQuery('');
@@ -40,9 +60,9 @@ export default function App() {
   }
 
   const onNext = () => {
-    const correctCountry = countries.find(country => country.flag === countries[current].flag);
+    const correctCountry = countries.find(country => country.flag === shuffledCountries[current].flag);
     if (correctCountry.country === selectedCountry) {
-      setScore(score + 1);
+      setCorrect([...correct, selectedCountry]);
     }
     setSelectedCountry('');
     setCurrent(current + 1);
@@ -54,12 +74,12 @@ export default function App() {
       <View style={styles.container}>
         <View style={{ alignItems: 'center' }}>
           <Text style={styles.title}>Countries Quiz</Text>
-          <Text>{current} / {countries.length}</Text>
-          <Text>Score {score}</Text>
+          <Text>{current + 1} / {countries.length}</Text>
+          <Text>Score {correct.length}</Text>
         </View>
         <View style={{ flex: 1, alignItems: 'center' }}>
           <SvgUri
-            uri={countries[current].flag}
+            uri={shuffledCountries[current].flag}
             style={styles.flag}
           />
           <View style={{ position: 'relative' }}>
