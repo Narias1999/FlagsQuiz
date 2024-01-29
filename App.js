@@ -4,13 +4,11 @@ import { SvgUri } from 'react-native-svg';
 
 import Button from './components/Button';
 
-import countriest from './countries.json';
+import countries from './countries.json';
 import { useEffect, useMemo, useState } from 'react';
 import { shuffleArry, getFirst10Items } from './utils';
 import { useCheatCount } from './hooks/useCheatCount';
 import { useSaveScores } from './hooks/useSaveScores';
-
-const countries = getFirst10Items(countriest);
 
 const countryNames = countries.map(country => country.country);
 
