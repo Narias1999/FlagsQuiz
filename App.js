@@ -1,22 +1,16 @@
-import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View, AppState } from 'react-native';
 import Autocomplete from 'react-native-autocomplete-input';
 import { SvgUri } from 'react-native-svg';
 
+import Button from './components/Button';
+
 import countries from './countries.json';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { shuffleArry, getFirst10Items } from './utils';
+import { useCheatCount } from './hooks/useCheatCount';
+import { useSaveScores } from './hooks/useSaveScores';
 
 const countryNames = countries.map(country => country.country);
-
-const shuffleArry = (array) => {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * i);
-    const temp = shuffled[i];
-    shuffled[i] = shuffled[j];
-    shuffled[j] = temp;
-  }
-  return shuffled;
-}
 
 const Item = ({ children, onPress }) => (
   <TouchableOpacity onPress={onPress}>
@@ -24,21 +18,12 @@ const Item = ({ children, onPress }) => (
   </TouchableOpacity>
 );
 
-const getFirst10Items = (items) => items.slice(0, 10);
-
-const Button = ({ children, onPress, type }) => (
-  <TouchableOpacity onPress={onPress}>
-    <View style={[styles.button, { backgroundColor: type === 'success' ? '#2ecc71' : '#e74c3c' }]}>
-      <Text style={{ color: '#fff', fontSize: 15 }}>{children}</Text>
-    </View>
-  </TouchableOpacity>
-);
-
 export default function App() {
   const [query, setQuery] = useState('');
-  const [current, setCurrent] = useState(0); // countries[0
+  const [current, setCurrent] = useState(0);
   const [selectedCountry, setSelectedCountry] = useState('');
   const [correct, setCorrect] = useState([]);
+  useSaveScores({ countries, current, correct, outTimes });
   const filteredCountries = useMemo(() => {
     const filtered = countryNames.filter(country => {
       const isInList = country.toLowerCase().includes(query.toLowerCase());
@@ -48,7 +33,19 @@ export default function App() {
 
     return getFirst10Items(filtered);
   }, [query]);
-  const shuffledCountries = useMemo(() => shuffleArry(countries), []);
+
+  const outTimes = useCheatCount();
+
+  useEffect(() => resetApp(), [outTimes]);
+
+  const shuffledCountries = useMemo(() => shuffleArry(countries), [outTimes]);
+
+  const resetApp = () => {
+    setQuery('');
+    setCurrent(0);
+    setSelectedCountry('');
+    setCorrect([]);
+  }
 
   const selectItem = (item) => {
     setQuery('');
@@ -60,13 +57,23 @@ export default function App() {
   }
 
   const onNext = () => {
-    const correctCountry = countries.find(country => country.flag === shuffledCountries[current].flag);
+    const correctCountry = shuffledCountries[current]
+
     if (correctCountry.country === selectedCountry) {
       setCorrect([...correct, selectedCountry]);
     }
     setSelectedCountry('');
     setCurrent(current + 1);
+  }
 
+  if (current >= countries.length) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 15 }}>
+        <Text style={styles.title}>Game Over</Text>
+
+        <Text>Score: {correct.length}</Text>
+      </View>
+    )
   }
 
   return (
@@ -105,10 +112,16 @@ export default function App() {
                   }}
                 />
               )
-              
             }
           </View>
         </View>
+        {
+          outTimes > 0 && (
+            <View style={{ paddingBottom: 40 }}>
+              <Text>Out times: {outTimes}</Text>
+            </View>
+          )
+        }
       </View>
     </TouchableWithoutFeedback>
   );
@@ -140,12 +153,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 20,
     justifyContent: 'center'
-  },
-  button: {
-    padding: 10,
-    width: 100,
-    alignItems: 'center',
-    backgroundColor: '#ccc',
-    borderRadius: 5
   }
 });
