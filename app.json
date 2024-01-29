@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "FlagsQuiz",
-    "slug": "FlagsQuiz",
+    "slug": "flagsquiz",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "61b0092d-ab14-4910-8d1f-429db6a6156a"
+      }
+    },
+    "owner": "theindigo"
   }
 }
