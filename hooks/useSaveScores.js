@@ -11,7 +11,6 @@ export const useSaveScores = ({ countries, current, correct, outTimes }) => {
         const scores = value ? JSON.parse(value) : {};
         scores[new Date().toISOString()] = {
           correctCountries: correct,
-          outTimes,
         };
         AsyncStorage.setItem(scoresKey, JSON.stringify(scores));
         AsyncStorage.removeItem(cheatKey);

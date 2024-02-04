@@ -15,6 +15,7 @@ export const useCheatCount = () => {
     });
   
     const subscription = AppState.addEventListener('change', nextAppState => {
+      console.log(nextAppState, 'nextAppState');
       if (nextAppState === 'background') {
         const newCount = count + 1;
         setCount(newCount);
